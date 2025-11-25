@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22.21.0-alpine AS builder
 
 WORKDIR /app
 
@@ -11,31 +11,14 @@ COPY package.json pnpm-lock.yaml ./
 # Instalar dependências
 RUN pnpm install --frozen-lockfile
 
-# Copiar código fonte
+# Copiar restante do código fonte
 COPY . .
 
-# Build da aplicação
+# 🔥 Importante: gerar Prisma Client antes do build
+RUN DATABASE_URL="placeholder" pnpm dlx prisma generate
+
+# Agora sim pode buildar
 RUN pnpm run build
 
-# Imagem de produção
-FROM node:20-alpine
-
-WORKDIR /app
-
-# Instalar pnpm
-RUN npm install -g pnpm
-
-# Copiar package.json
-COPY package.json pnpm-lock.yaml ./
-
-# Instalar apenas dependências de produção
-RUN pnpm install --prod --frozen-lockfile
-
-# Copiar build da aplicação
-COPY --from=builder /app/dist ./dist
-
-# Expor porta
-EXPOSE 3000
-
-# Comando para iniciar
-CMD ["node", "dist/main"]
+# Executar Prisma Studio + App
+CMD sh -c "node dist/src/main.js"

@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum TransactionType {
+  DEPOSIT
+  TRANSFER
+  REVERSAL
+}
+
+enum TransactionStatus {
+  COMPLETED
+  REVERSED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  balance      Decimal  @default(0) @db.Decimal(19, 2)
+  createdAt    DateTime @default(now())
+
+  sentTransactions     Transaction[]  @relation("SentTransactions")
+  receivedTransactions Transaction[]  @relation("ReceivedTransactions")
+  refreshTokens        RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+model Transaction {
+  id                   String            @id @default(cuid())
+  fromUserId           String?
+  toUserId             String
+  amount               Decimal           @db.Decimal(19, 2)
+  type                 TransactionType
+  status               TransactionStatus @default(COMPLETED)
+  relatedTransactionId String?
+  description          String?
+  createdAt            DateTime          @default(now())
+
+  fromUser           User?         @relation("SentTransactions", fields: [fromUserId], references: [id])
+  toUser             User          @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+  relatedTransaction Transaction?  @relation("TransactionReversal", fields: [relatedTransactionId], references: [id])
+  reversals          Transaction[] @relation("TransactionReversal")
+
+  @@map("transactions")
+}

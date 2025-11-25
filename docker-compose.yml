@@ -25,19 +25,11 @@ services:
     restart: unless-stopped
     ports:
       - "3001:3001"
-    environment:
-      PORT: 3001
-      NODE_ENV: development
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_USER: digiwallet
-      DATABASE_PASSWORD: digiwallet123
-      DATABASE_NAME: digiwallet
+    env_file:
+      - .env
+      
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
 volumes:
   postgres_data:
