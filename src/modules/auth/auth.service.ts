@@ -22,7 +22,7 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('Usuário com este email já existe');
+      throw new ConflictException('Email em uso');
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

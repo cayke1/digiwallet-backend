@@ -5,15 +5,17 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Res,
+  Req,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { type Request, type Response } from 'express';
 import { AuthService } from './auth.service';
 import {
   registerSchema,
   loginSchema,
-  refreshTokenSchema,
   type RegisterDto,
   type LoginDto,
-  type RefreshTokenDto,
 } from './dto';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -32,14 +34,54 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+  async login(
+    @Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const result = await this.authService.login(loginDto);
+
+    response.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
+
+    response.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return { user: result.user };
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body(new ZodValidationPipe(refreshTokenSchema)) body: RefreshTokenDto) {
-    return this.authService.refreshAccessToken(body.refreshToken);
+  async refresh(
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    const refreshToken = request.cookies['refreshToken'];
+
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token não fornecido');
+    }
+
+    const result = await this.authService.refreshAccessToken(refreshToken);
+
+    response.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
+
+    return { success: true };
   }
 
   @Post('logout')
@@ -47,8 +89,16 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async logout(
     @CurrentUser() user: any,
-    @Body(new ZodValidationPipe(refreshTokenSchema)) body: any,
+    @Req() request: Request,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    await this.authService.logout(user.id, body.refreshToken);
+    const refreshToken = request.cookies['refreshToken'];
+
+    if (refreshToken) {
+      await this.authService.logout(user.id, refreshToken);
+    }
+
+    response.clearCookie('accessToken');
+    response.clearCookie('refreshToken');
   }
 }
