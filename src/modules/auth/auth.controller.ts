@@ -1,6 +1,20 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { registerSchema, loginSchema, refreshTokenSchema } from './dto';
+import {
+  registerSchema,
+  loginSchema,
+  refreshTokenSchema,
+  type RegisterDto,
+  type LoginDto,
+  type RefreshTokenDto,
+} from './dto';
 import { ZodValidationPipe } from '../../common/pipes/zod-validation.pipe';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -10,19 +24,21 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  async register(@Body(new ZodValidationPipe(registerSchema)) registerDto: any) {
+  async register(
+    @Body(new ZodValidationPipe(registerSchema)) registerDto: RegisterDto,
+  ) {
     return this.authService.register(registerDto);
   }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: any) {
+  async login(@Body(new ZodValidationPipe(loginSchema)) loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  async refresh(@Body(new ZodValidationPipe(refreshTokenSchema)) body: any) {
+  async refresh(@Body(new ZodValidationPipe(refreshTokenSchema)) body: RefreshTokenDto) {
     return this.authService.refreshAccessToken(body.refreshToken);
   }
 
