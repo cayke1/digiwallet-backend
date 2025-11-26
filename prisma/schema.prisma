@@ -26,8 +26,8 @@ model User {
   balance      Decimal  @default(0) @db.Decimal(19, 2)
   createdAt    DateTime @default(now())
 
-  sentTransactions     Transaction[]  @relation("SentTransactions")
-  receivedTransactions Transaction[]  @relation("ReceivedTransactions")
+  sentTransactions     FinancialTransaction[]  @relation("SentTransactions")
+  receivedTransactions FinancialTransaction[]  @relation("ReceivedTransactions")
   refreshTokens        RefreshToken[]
 
   @@map("users")
@@ -45,7 +45,7 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-model Transaction {
+model FinancialTransaction {
   id                   String            @id @default(cuid())
   fromUserId           String?
   toUserId             String
@@ -56,10 +56,20 @@ model Transaction {
   description          String?
   createdAt            DateTime          @default(now())
 
-  fromUser           User?         @relation("SentTransactions", fields: [fromUserId], references: [id])
-  toUser             User          @relation("ReceivedTransactions", fields: [toUserId], references: [id])
-  relatedTransaction Transaction?  @relation("TransactionReversal", fields: [relatedTransactionId], references: [id])
-  reversals          Transaction[] @relation("TransactionReversal")
+  idempotencyKey String @unique
+
+  fromUser           User?                  @relation("SentTransactions", fields: [fromUserId], references: [id])
+  toUser             User                   @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+  relatedTransaction FinancialTransaction?  @relation("TransactionReversal", fields: [relatedTransactionId], references: [id])
+  reversals          FinancialTransaction[] @relation("TransactionReversal")
+
+  idempotency IdempotencyKey @relation(fields: [idempotencyKey], references: [key], onDelete: Cascade)
 
   @@map("transactions")
+}
+
+model IdempotencyKey {
+  id          String                @id @default(uuid())
+  key         String                @unique
+  transaction FinancialTransaction?
 }
