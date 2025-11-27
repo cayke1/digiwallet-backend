@@ -28,8 +28,27 @@ export class AuthController {
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(registerSchema)) registerDto: RegisterDto,
+    @Res({ passthrough: true }) response: Response,
   ) {
-    return this.authService.register(registerDto);
+    const result = await this.authService.register(registerDto);
+
+    response.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 15 * 60 * 1000,
+      path: '/',
+    });
+
+    response.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return { user: result.user };
   }
 
   @Post('login')
