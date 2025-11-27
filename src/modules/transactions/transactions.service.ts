@@ -86,7 +86,7 @@ export class TransactionsService {
         where: { key: idempotencyKey },
         include: {
           transaction: {
-            include: { reversals: true },
+            include: { mirrorOf: true },
           },
         },
       });
@@ -95,7 +95,7 @@ export class TransactionsService {
         const main = existingKey.transaction;
 
         const mirror = await tx.financialTransaction.findFirst({
-          where: { relatedTransactionId: main.id },
+          where: { mirrorTransactionId: main.id },
         });
 
         return { main, mirror };
@@ -141,7 +141,7 @@ export class TransactionsService {
           amount,
           description: `Mirror of ${mainTx.id}`,
           type: 'TRANSFER',
-          relatedTransactionId: mainTx.id,
+          mirrorTransactionId: mainTx.id,
           idempotencyKey: mirrorIdempotencyKey,
         },
       });
@@ -179,7 +179,7 @@ export class TransactionsService {
 
       const originalTx = await tx.financialTransaction.findUnique({
         where: { id: relatedTransactionId },
-        include: { reversals: true },
+        include: { reversals: true, mirrorOf: true },
       });
 
 
@@ -201,9 +201,7 @@ export class TransactionsService {
         );
       }
 
-      const hasReversal = originalTx.reversals.some(
-        (rev) => rev.type === 'REVERSAL'
-      );
+      const hasReversal = originalTx.reversals.length > 0;
       if (hasReversal) {
         throw new BadRequestException('Transação já possui uma reversão');
       }
@@ -276,7 +274,7 @@ export class TransactionsService {
       if (originalTx.type === 'TRANSFER') {
         const mirrorTx = await tx.financialTransaction.findFirst({
           where: {
-            relatedTransactionId: originalTx.id,
+            mirrorTransactionId: originalTx.id,
             type: 'TRANSFER',
           },
         });
@@ -319,6 +317,8 @@ export class TransactionsService {
         },
         relatedTransaction: true,
         reversals: true,
+        mirrorTransaction: true,
+        mirrorOf: true,
       },
       orderBy: { createdAt: 'desc' },
       take: limit,
@@ -341,6 +341,8 @@ export class TransactionsService {
         },
         relatedTransaction: true,
         reversals: true,
+        mirrorTransaction: true,
+        mirrorOf: true,
       },
     });
 
