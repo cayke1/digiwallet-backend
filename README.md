@@ -65,7 +65,7 @@ Para disponibilizar a aplicação em funcionamento, são necessários os seguint
 2. Aplicação das migrações do banco de dados
 3. Inicialização da aplicação
 
-A documentação da API está disponível através da interface Swagger, permitindo a exploração e teste de todos os endpoints disponíveis.
+A documentação da API está disponível através da interface [Swagger](digiwalletapi.caykedev.com/api/docs), permitindo a exploração e teste de todos os endpoints disponíveis.
 
 ## Pontos de Atenção na Implementação
 
