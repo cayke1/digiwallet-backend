@@ -59,13 +59,174 @@ A aplicação é organizada em módulos funcionais que agrupam as responsabilida
 
 ## Preparação para Execução
 
-Para disponibilizar a aplicação em funcionamento, são necessários os seguintes passos:
+### Pré-requisitos
 
-1. Configuração das variáveis de ambiente
-2. Aplicação das migrações do banco de dados
-3. Inicialização da aplicação
+- Node.js (versão 18 ou superior)
+- pnpm (gerenciador de pacotes)
+- PostgreSQL (versão 14 ou superior)
 
-A documentação da API está disponível através da interface [Swagger](digiwalletapi.caykedev.com/api/docs), permitindo a exploração e teste de todos os endpoints disponíveis.
+### 1. Instalação de Dependências
+
+```bash
+pnpm install
+```
+
+### 2. Configuração das Variáveis de Ambiente
+
+Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
+
+```env
+# Servidor
+PORT=3333
+NODE_ENV=development
+
+# Banco de Dados PostgreSQL
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASSWORD=sua_senha
+DATABASE_NAME=digiwallet
+DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+
+# JWT
+JWT_SECRET=sua_chave_secreta_com_minimo_32_caracteres_aqui
+JWT_ACCESS_EXPIRATION=15m
+JWT_REFRESH_EXPIRATION=7d
+
+# Frontend (para CORS)
+FRONTEND_URL=http://localhost:3000
+```
+
+**Observações importantes:**
+- `JWT_SECRET` deve ter no mínimo 32 caracteres
+- `NODE_ENV` aceita os valores: `development`, `production` ou `test`
+- `JWT_ACCESS_EXPIRATION` define o tempo de validade do access token (padrão: 15 minutos)
+- `JWT_REFRESH_EXPIRATION` define o tempo de validade do refresh token (padrão: 7 dias)
+
+### 3. Configuração do Banco de Dados
+
+Execute as migrações do Prisma para criar as tabelas no banco:
+
+```bash
+# Gerar o client do Prisma
+pnpm prisma generate
+
+# Executar as migrações
+pnpm prisma migrate dev
+```
+
+Para visualizar os dados no Prisma Studio (opcional):
+
+```bash
+pnpm prisma studio
+```
+
+### 4. Executando a Aplicação
+
+#### Modo de Desenvolvimento
+
+```bash
+pnpm start:dev
+```
+
+A aplicação estará disponível em `http://localhost:3333` (ou na porta configurada em `PORT`).
+
+#### Modo de Produção
+
+```bash
+# Build da aplicação
+pnpm build
+
+# Executar em produção
+pnpm start:prod
+```
+
+### 5. Testes
+
+```bash
+# Executar todos os testes
+pnpm test
+
+# Testes com watch mode
+pnpm test:watch
+
+# Testes com coverage
+pnpm test:cov
+
+# Testes E2E
+pnpm test:e2e
+```
+
+### 6. Documentação da API (Swagger)
+
+Após iniciar a aplicação, a documentação interativa da API estará disponível em:
+
+**Local:** `http://localhost:3333/api/docs`
+
+**Produção:** [digiwalletapi.caykedev.com/api/docs](https://digiwalletapi.caykedev.com/api/docs)
+
+A interface Swagger permite:
+- Explorar todos os endpoints disponíveis
+- Testar as requisições diretamente no navegador
+- Visualizar os schemas de request/response
+- Entender os códigos de status e possíveis erros
+
+## Principais Endpoints da API
+
+### Autenticação
+
+| Endpoint | Método | Descrição | Autenticação |
+|----------|--------|-----------|--------------|
+| `/auth/register` | POST | Criar nova conta | Não |
+| `/auth/login` | POST | Fazer login | Não |
+| `/auth/refresh` | POST | Renovar token de acesso | Cookie |
+| `/auth/logout` | POST | Encerrar sessão | JWT |
+
+### Usuários
+
+| Endpoint | Método | Descrição | Autenticação |
+|----------|--------|-----------|--------------|
+| `/users/me` | GET | Obter dados do usuário autenticado | JWT |
+| `/users/email?email=exemplo@email.com` | GET | Buscar usuário por email | Não |
+
+### Transações
+
+| Endpoint | Método | Descrição | Autenticação |
+|----------|--------|-----------|--------------|
+| `/transactions/deposit` | POST | Realizar depósito | JWT + Idempotency-Key |
+| `/transactions/transfer` | POST | Transferir para outro usuário | JWT + Idempotency-Key |
+| `/transactions/reversal` | POST | Reverter transação | JWT + Idempotency-Key |
+| `/transactions/history` | GET | Obter histórico de transações | JWT |
+| `/transactions/:id` | GET | Obter transação por ID | JWT |
+
+**Importante:** Todas as operações de transação requerem o header `idempotency-key` com no mínimo 16 caracteres para garantir idempotência.
+
+### Exemplo de Requisição - Depósito
+
+```bash
+curl -X POST http://localhost:3333/transactions/deposit \
+  -H "Content-Type: application/json" \
+  -H "idempotency-key: deposit-123456789012345" \
+  -H "Cookie: accessToken=seu_token_aqui" \
+  -d '{
+    "amount": "100.00",
+    "description": "Depósito inicial"
+  }'
+```
+
+### Exemplo de Requisição - Transferência
+
+```bash
+curl -X POST http://localhost:3333/transactions/transfer \
+  -H "Content-Type: application/json" \
+  -H "idempotency-key: transfer-123456789012345" \
+  -H "Cookie: accessToken=seu_token_aqui" \
+  -d '{
+    "toUserId": "uuid-destinatario",
+    "amount": "50.00",
+    "description": "Pagamento"
+  }'
+```
 
 ## Pontos de Atenção na Implementação
 
