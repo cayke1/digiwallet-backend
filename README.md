@@ -1,98 +1,72 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Carteira Financeira - API Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Esta aplicação implementa uma API para gerenciamento de uma carteira digital, permitindo que usuários realizem operações de depósito, transferência de saldo entre contas e reversão de transações.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Funcionalidades Implementadas
 
-## Description
+A aplicação contempla os seguintes requisitos funcionais:
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+| Funcionalidade                          | Descrição
+| --------------------------------| -----|
+| Cadastro de usuários        | Registro de novos usuários com validação de dados
+| Autenticação                | Controle de acesso baseado em tokens JWT
+| Depósito                    | Adição de saldo à conta do usuário
+| Transferência              | Transferência de valores entre contas distintas
+| Reversão de transações  | Capacidade de desfazer operações de depósito ou transferência
+| Validação de saldo      | Verificação de saldo suficiente antes de realizar transferências
 
-## Project setup
+## Tecnologias Utilizadas
 
-```bash
-$ npm install
-```
+| Tecnologia                          | Finalidade
+| --------------------------------| ------|
+| NestJS                        | Framework para construção da aplicação
+| TypeScript                   | Tipagem estática
+| Prisma ORM                  | Gerenciamento de acesso ao banco de dados
+| PostgreSQL                  | Banco de dados relacional
+| JWT                        | Mecanismo de autenticação
+| Bcrypt                     | Criptografia de senhas
 
-## Compile and run the project
+## Abordagem de Implementação
 
-```bash
-# development
-$ npm run start
+A solução foi estruturada seguindo os princípios de arquitetura modular, com separação clara de responsabilidades entre camadas de apresentação, lógica de negócio e persistência.
 
-# watch mode
-$ npm run start:dev
+As principais decisões de implementação incluem:
 
-# production mode
-$ npm run start:prod
-```
+- **Controle de Transações**: Todas as operações financeiras são executadas dentro de transações de banco de dados para garantir atomicidade e consistência.
 
-## Run tests
+- **Mecanismo de Reversão**: As reversões são implementadas através da criação de transações compensatórias, preservando o histórico completo de todas as movimentações.
 
-```bash
-# unit tests
-$ npm run test
+- **Validações**: Verificação obrigatória de saldo disponível antes da execução de transferências, permitindo depósitos independentemente do saldo atual da conta.
 
-# e2e tests
-$ npm run test:e2e
+## Estrutura da Solução
 
-# test coverage
-$ npm run test:cov
-```
+A aplicação é organizada em módulos funcionais que agrupam as responsabilidades relacionadas a cada domínio:
 
-## Deployment
+| Módulo                | Responsabilidades
+| ------------------| --------------|
+| Autenticação  | Cadastro, login e controle de acesso
+| Carteira   | Operações de depósito, transferência e reversão
+| Usuários  | Gerenciamento de informações do usuário
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+## Considerações de Projeto
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+| Aspecto de Implementação        | Abordagem Adotada
+| ----------------------------| --------------|
+| Segurança                | Senhas criptografadas, tokens com expiração, validação de autorização em operações financeiras
+| Consistência         | Execução de operações financeiras dentro de transações de banco
+| Tratamento de erros | Sistema centralizado de exceções com respostas padronizadas
+| Modelagem de dados  | Estrutura que mantém histórico completo e permite rastreabilidade de todas as movimentações
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
+## Preparação para Execução
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+Para disponibilizar a aplicação em funcionamento, são necessários os seguintes passos:
 
-## Resources
+1. Configuração das variáveis de ambiente
+2. Aplicação das migrações do banco de dados
+3. Inicialização da aplicação
 
-Check out a few resources that may come in handy when working with NestJS:
+A documentação da API está disponível através da interface Swagger, permitindo a exploração e teste de todos os endpoints disponíveis.
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Pontos de Atenção na Implementação
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+A solução prioriza a garantia de consistência nas operações financeiras através do uso de transações de banco de dados e implementa reversões através de movimentações compensatórias, mantendo a integridade do histórico de transações. Este modelo assegura que todas as operações sejam rastreáveis e que seja possível desfazer movimentações sem comprometer a consistência dos dados.
