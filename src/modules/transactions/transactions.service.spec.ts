@@ -156,7 +156,7 @@ describe('TransactionsService', () => {
           toUserId: 'user-1',
           amount: new Decimal(50),
           type: 'TRANSFER',
-          relatedTransactionId: 'tx-main',
+          mirrorTransactionId: 'tx-main',
         });
 
       const result = await service.transfer('user-1',transferDto, idempotencyKey);
@@ -216,7 +216,7 @@ describe('TransactionsService', () => {
 
       const existingMirror = {
         id: 'tx-mirror',
-        relatedTransactionId: 'tx-main',
+        mirrorTransactionId: 'tx-main',
       };
 
       mockPrismaService.idempotencyKey.findUnique.mockResolvedValue({
@@ -268,6 +268,7 @@ describe('TransactionsService', () => {
         type: 'DEPOSIT',
         status: 'COMPLETED',
         reversals: [],
+        mirrorOf: [],
       };
 
       mockPrismaService.idempotencyKey.findUnique.mockResolvedValue(null);
@@ -309,6 +310,7 @@ describe('TransactionsService', () => {
         type: 'TRANSFER',
         status: 'COMPLETED',
         reversals: [],
+        mirrorOf: [],
       };
 
       mockPrismaService.idempotencyKey.findUnique.mockResolvedValue(null);
@@ -323,7 +325,7 @@ describe('TransactionsService', () => {
       });
       mockPrismaService.financialTransaction.findFirst.mockResolvedValue({
         id: 'tx-mirror',
-        relatedTransactionId: 'tx-transfer',
+        mirrorTransactionId: 'tx-transfer',
       });
 
       await service.reversal(reversalDto, idempotencyKey);
@@ -355,6 +357,7 @@ describe('TransactionsService', () => {
         id: 'tx-reversal',
         type: 'REVERSAL',
         reversals: [],
+        mirrorOf: [],
       });
 
       await expect(
@@ -373,6 +376,7 @@ describe('TransactionsService', () => {
         type: 'DEPOSIT',
         status: 'REVERSED',
         reversals: [],
+        mirrorOf: [],
       });
 
       await expect(
@@ -393,6 +397,7 @@ describe('TransactionsService', () => {
         type: 'DEPOSIT',
         status: 'COMPLETED',
         reversals: [],
+        mirrorOf: [],
       });
       mockPrismaService.financialTransaction.create.mockResolvedValue({
         id: 'tx-reversal',

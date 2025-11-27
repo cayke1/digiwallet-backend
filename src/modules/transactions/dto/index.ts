@@ -12,6 +12,7 @@ export interface Transaction {
   type: TransactionType;
   status: TransactionStatus;
   relatedTransactionId?: string;
+  mirrorTransactionId?: string;
   description?: string;
   createdAt: string;
 }
