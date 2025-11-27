@@ -1,4 +1,4 @@
-# Carteira Financeira - API Backend
+# DigiWallet - API Nest
 
 Esta aplicação implementa uma API para gerenciamento de uma carteira digital, permitindo que usuários realizem operações de depósito, transferência de saldo entre contas e reversão de transações.
 
