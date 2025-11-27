@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -11,5 +11,10 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   async getMe(@CurrentUser() user: any) {
     return this.usersService.findById(user.id);
+  }
+
+  @Get('/email')
+  async getByEmail(@Query() identifier: any) {
+    return this.usersService.findByEmail(identifier.email);
   }
 }
