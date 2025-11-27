@@ -19,22 +19,22 @@ enum TransactionStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
+  id           String   @id @default(uuid())
   name         String
   email        String   @unique
   passwordHash String
   balance      Decimal  @default(0) @db.Decimal(19, 2)
   createdAt    DateTime @default(now())
 
-  sentTransactions     FinancialTransaction[]  @relation("SentTransactions")
-  receivedTransactions FinancialTransaction[]  @relation("ReceivedTransactions")
+  sentTransactions     FinancialTransaction[] @relation("SentTransactions")
+  receivedTransactions FinancialTransaction[] @relation("ReceivedTransactions")
   refreshTokens        RefreshToken[]
 
   @@map("users")
 }
 
 model RefreshToken {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   token     String   @unique
   userId    String
   expiresAt DateTime
@@ -46,22 +46,27 @@ model RefreshToken {
 }
 
 model FinancialTransaction {
-  id                   String            @id @default(cuid())
+  id                   String            @id @default(uuid())
   fromUserId           String?
   toUserId             String
   amount               Decimal           @db.Decimal(19, 2)
   type                 TransactionType
   status               TransactionStatus @default(COMPLETED)
   relatedTransactionId String?
+  mirrorTransactionId  String?
   description          String?
   createdAt            DateTime          @default(now())
 
   idempotencyKey String @unique
 
-  fromUser           User?                  @relation("SentTransactions", fields: [fromUserId], references: [id])
-  toUser             User                   @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+  fromUser User? @relation("SentTransactions", fields: [fromUserId], references: [id])
+  toUser   User  @relation("ReceivedTransactions", fields: [toUserId], references: [id])
+
   relatedTransaction FinancialTransaction?  @relation("TransactionReversal", fields: [relatedTransactionId], references: [id])
   reversals          FinancialTransaction[] @relation("TransactionReversal")
+
+  mirrorTransaction FinancialTransaction?  @relation("TransactionMirror", fields: [mirrorTransactionId], references: [id])
+  mirrorOf          FinancialTransaction[] @relation("TransactionMirror")
 
   idempotency IdempotencyKey @relation(fields: [idempotencyKey], references: [key], onDelete: Cascade)
 
